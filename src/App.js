@@ -1,10 +1,87 @@
-import React,{ useState } from "react";
+import React,{ useState, useEffect } from "react";
+import InputForm from "./components/InputForm";
+import EditForm from "./components/EditForm";
+import Filter from "./components/Filter";
+
+
 
 function App() {
 
 const [todos, setTodos] = useState([])
 const [todoTitle, setTodoTitle] = useState("")
 const [todoId, setTodoId] = useState(1)
+//フィルター要素
+const [filterTodos, setFilterTodos] = useState([])
+const [filter, setFilter] = useState("notStated")
+// 編集用関数
+const [isEditable, setIsEditable] = useState(false)
+const [editId, setEditId] = useState()
+const [newTitle, setNewTitle] = useState("")
+
+
+const handleSetNewTitle = (e) => {
+  setNewTitle(e.target.value)
+}
+// 引数内の{}を忘れないように注意
+const handleOpenEditForm = ({id, title}) => {
+  setIsEditable(true)
+  setEditId(id)
+  setNewTitle(title)
+}
+
+const handleCloseEditForm = () => {
+  setIsEditable(false)
+  setEditId()
+}
+
+const handleEditTodo = () => {
+  setTodos([...todos].map((todo) => 
+    todos.id === editId.id ? {...todo, title: newTitle} : todo
+  ))
+  setNewTitle("")
+  handleCloseEditForm()
+  setEditId()
+}
+
+//フィルター
+// const handleStatusChange = ({id}, e) => {
+//   const newTodos = todos.map((todo) => ({...todo}))
+//   setTodos(
+//     newTodos.map((todo) => todo.id === id ? {...todo, status: e.target.value}:todo)
+//   )
+// }
+
+
+// useEffect(() => {
+//   const filteringTodos = () => {
+//     switch(filter){
+//       case "notStated":
+//       setFilterTodos(
+//         todos.filter((todo) => {
+//           todo.status === "notStated"
+//         })
+//       )
+//       break;
+//       case "inProgress":
+//         setFilterTodos(
+//           todos.filter((todo) => {
+//             todo.status === "inProgress"
+//           })
+//         )
+//         break;
+//       case "done":
+//         setFilterTodos(
+//           todos.filter((todo) => {
+//             todo.status === "done"
+//           })
+//         )
+//         break;
+//       default:
+//         setFilterTodos(todos)  
+//     }
+//   }
+//   filteringTodos()
+// }, [filter, todos])
 
 //タイトルinput内の入力した文字を取得
 const handleSetTodoTitle = (e) => {
@@ -31,41 +108,39 @@ const handleDeleteTodo = (targetTodo) => {
   setTodos(todos.filter((todo) => todo.id !== targetTodo.id))
 } 
 
+
+
   return (
     <>
-    {/* タイトル追加フォーム */}
-    <label htmlFor="todo">タイトル:</label>
-    <input type="text" 
-           name="todo"
-           value={todoTitle}
-           onChange={handleSetTodoTitle}></input>
-    <button onClick={handleAddTodo}>作成</button>
-
-    {/* 編集フォーム */}
-    {/* <label htmlFor="edit">新しいタイトル</label>
-    <input type="text" name="edit"></input>
-    <button>編集を保存</button>
-    <button>キャンセル</button> */}
-
-    {/* 表示切り替えプルダウン */}
-    <select>
-      <option value="all">全て</option>
-      <option value="notStated">未着手</option>
-      <option value="inProgress">作業中</option>
-      <option value="done">完了</option>
-    </select>
+    {!isEditable ? (
+        <InputForm
+          todoTitle = {todoTitle}
+          handleSetTodoTitle = {handleSetTodoTitle}
+          handleAddTodo = {handleAddTodo}/>   
+    ):(
+        <EditForm
+        newTitle = {newTitle}
+        handleSetNewTitle = {handleSetNewTitle}
+        handleEditTodo = {handleEditTodo}
+        handleCloseEditForm = {handleCloseEditForm}
+        />
+        
+    )}
+    
+      <Filter/>
 
     <ul>
       {/* map => ()になる */}
       {todos.map((todo)=> (
         <li key={todo.id}>
+          <span>{todo.id}</span>
           <span>{todo.title}</span>
-          <select value={todo.status}>
+          <select defaultValue={todo.status}>
           <option value="notStated">未着手</option>
           <option value="inProgress">作業中</option>
           <option value="done">完了</option>
           </select>
-        <button>編集</button>
+        <button onClick={() => handleOpenEditForm(todo)}>編集</button>
         <button onClick={() => handleDeleteTodo(todo)}>削除</button>
       </li>
       ))}
